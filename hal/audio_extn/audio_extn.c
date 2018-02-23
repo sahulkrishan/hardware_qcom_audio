@@ -108,16 +108,19 @@ void audio_extn_set_anc_parameters(struct audio_device *adev,
 {
     int ret;
     char value[32] ={0};
+    char prop_audio_anc[PROPERTY_VALUE_MAX] = "false";
     struct listnode *node;
     struct audio_usecase *usecase;
 
-    ret = str_parms_get_str(parms, AUDIO_PARAMETER_KEY_ANC, value,
-                            sizeof(value));
-    if (ret >= 0) {
-        if (strcmp(value, "true") == 0)
-            aextnmod.anc_enabled = true;
-        else
-            aextnmod.anc_enabled = false;
+    property_get("persist.audio.anc.enabled", prop_audio_anc, "0");
+    if (!strncmp("true", prop_audio_anc, 4)) {
+	ALOGD("%s: ANC enabled in the property", __func__);
+        aextnmod.anc_enabled = 1; }
+
+    property_get("persist.audio.anc.enabled", prop_audio_anc, "0");
+    if (!strncmp("false", prop_audio_anc, 4)) {
+	ALOGD("%s: ANC disabled in the property", __func__);
+        aextnmod.anc_enabled = 0; }
 
         list_for_each(node, &adev->usecase_list) {
             usecase = node_to_item(node, struct audio_usecase, list);
@@ -132,7 +135,6 @@ void audio_extn_set_anc_parameters(struct audio_device *adev,
                 }
             }
         }
-    }
 
     ALOGD("%s: anc_enabled:%d", __func__, aextnmod.anc_enabled);
 }
